@@ -57,3 +57,29 @@ We have:
 - A `StreamingInterceptor` that demonstrates how to stream the response back to the client without having to wait for the entire response from the upstream to be received.
 
 Most importantly the interceptors won't read entire request and responses into the memory of the worker (unless you explicitly want to) and instead work with streams, which means this architecture can support very large requests and responses without running into memory issues.
+
+There is a `customerinterceptor` that shows how you can call call arbitrary RPC functions from an external Worker via [Service Bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/). This pattern allows you to extend the gateway with custom logic without modifying the core gateway code.
+
+The external Worker extends `WorkerEntrypoint` and can expose any RPC function with any signature:
+
+```typescript
+export default class extends WorkerEntrypoint {
+	async customRPCFunction(response: Response): Promise<Response> {
+		// Process the response and return a new one
+	}
+
+	async anotherFunction(data: SomeType, options: Options): Promise<Result> {
+		// Any signature works - Service Bindings handle serialization
+	}
+}
+```
+
+The gateway then defines a TypeScript interface matching the expected functions and calls them directly on the bound service:
+
+```typescript
+interface ExternalServiceDefinition {
+	customRPCFunction(response: Response): Promise<Response>;
+}
+
+// Called via: env.EXTERNAL_INTERCEPTOR.customRPCFunction(response)
+```
