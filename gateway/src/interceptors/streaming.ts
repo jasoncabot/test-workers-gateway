@@ -1,4 +1,4 @@
-import { ResponseInterceptor } from '../pipeline';
+import { ResponseInterceptor } from '.';
 
 export const createStreamingInterceptor = (prefix: string, suffix: string): ResponseInterceptor => ({
 	name: 'StreamingInterceptor',

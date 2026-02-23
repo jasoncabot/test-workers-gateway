@@ -1,0 +1,10 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "custominterceptor",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-02-19",
+	"observability": {
+		"enabled": true,
+	},
+	"compatibility_flags": ["nodejs_compat"],
+}

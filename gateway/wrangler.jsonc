@@ -12,5 +12,9 @@
 			"binding": "UPSTREAM_ORIGIN",
 			"service": "origin",
 		},
+		{
+			"binding": "EXTERNAL_INTERCEPTOR",
+			"service": "custominterceptor",
+		},
 	],
 }

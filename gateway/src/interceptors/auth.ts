@@ -1,4 +1,4 @@
-import { RequestInterceptor } from '../pipeline';
+import { RequestInterceptor } from '.';
 
 export const createAuthInterceptor = (token: string): RequestInterceptor => ({
 	name: 'AuthInterceptor',

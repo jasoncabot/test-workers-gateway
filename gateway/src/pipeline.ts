@@ -1,18 +1,4 @@
-export interface RequestInterceptor {
-	name: string;
-	handle(request: Request, context: ExecutionContext): Promise<Request | Response>;
-}
-
-export interface ResponseInterceptor {
-	name: string;
-	handle(response: Response, context: ExecutionContext): Promise<Response>;
-}
-
-export interface RouteConfig {
-	next: (env: Env) => Fetcher;
-	requestInterceptors: RequestInterceptor[];
-	responseInterceptors: ResponseInterceptor[];
-}
+import type { RequestInterceptor, ResponseInterceptor } from './interceptors';
 
 export class GatewayPipeline {
 	constructor(

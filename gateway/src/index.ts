@@ -1,39 +1,36 @@
-import { AuthInterceptor, LoggingInterceptor, StreamingInterceptor } from './interceptors';
-import { GatewayPipeline, RouteConfig } from './pipeline';
-
-// Static config that defines how each route is handled
-const ROUTE_MAP: Record<string, RouteConfig> = {
-	'/api/origin': {
-		next: (env) => env.UPSTREAM_ORIGIN,
-		requestInterceptors: [AuthInterceptor],
-		responseInterceptors: [
-			// As an example - after retrieving the response from the upstream, we go through multiple
-			// response middlewares to filter and log the response
-			LoggingInterceptor, 
-			StreamingInterceptor, 
-			LoggingInterceptor, 
-			StreamingInterceptor, 
-			LoggingInterceptor
-		],
-	},
-};
+import {
+	AuthInterceptor,
+	ExternalServiceDefinition,
+	LoggingInterceptor,
+	StreamingInterceptor,
+	createExternalServiceInterceptor,
+} from './interceptors';
+import { GatewayPipeline } from './pipeline';
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		const url = new URL(request.url);
 		console.log(`Incoming request for ${url.pathname}`);
 
-		// Find the interceptors that will run for this request
-		const config = ROUTE_MAP[url.pathname];
-		if (!config) {
-			return Response.json({ success: false, message: `no route for ${url.pathname}` }, { status: 404 });
-		}
+		// Middleware run on the incoming request
+		const requestInterceptors = [AuthInterceptor];
 
-		// Create the set of steps that will be run for this request and response
-		const pipeline = new GatewayPipeline(config.requestInterceptors, config.next(env), config.responseInterceptors);
+		// Middleware run on the response from the upstream
+		const responseInterceptors = [
+			LoggingInterceptor,
+			StreamingInterceptor,
+			LoggingInterceptor,
+			StreamingInterceptor,
+			LoggingInterceptor,
+			createExternalServiceInterceptor(env.EXTERNAL_INTERCEPTOR as unknown as ExternalServiceDefinition),
+			LoggingInterceptor,
+		];
+
+		// Create the pipeline
+		const pipeline = new GatewayPipeline(requestInterceptors, env.UPSTREAM_ORIGIN, responseInterceptors);
 		console.log(`Pipeline created:`, { pipeline: pipeline.toString() });
 
-		// now go and run it
+		// Run the pipeline
 		try {
 			return await pipeline.execute(request, ctx);
 		} catch (err) {
